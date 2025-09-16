@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "terraform fmt",
+      "type": "shell",
+      "command": "cd terraform && terraform fmt -recursive"
+    },
+    {
+      "label": "terraform validate",
+      "type": "shell",
+      "command": "cd terraform && terraform validate"
+    },
+    {
+      "label": "terraform plan",
+      "type": "shell",
+      "command": "cd terraform && terraform plan -out=tfplan"
+    },
+    {
+      "label": "terraform apply",
+      "type": "shell",
+      "command": "cd terraform && terraform apply -auto-approve tfplan"
+    },
+    {
+      "label": "helm lint web",
+      "type": "shell",
+      "command": "helm lint web-chart"
+    },
+    {
+      "label": "helm upgrade/install web",
+      "type": "shell",
+      "command": "helm upgrade --install web-nginx ./web-chart --namespace default --create-namespace"
+    },
+    {
+      "label": "validate web",
+      "type": "shell",
+      "command": "NS=default RELEASE=web-nginx TIMEOUT=300 ./scripts/validate-web.sh"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+name: Web Deploy & Validate
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'web-chart/**'
+      - 'scripts/validate-web.sh'
+      - '.github/workflows/web.yml'
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: eks-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      RELEASE: web-nginx
+      NS: default
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install kubectl, helm, jq, curl
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq curl
+          curl -sLo kubectl "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+          curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Update kubeconfig (EKS)
+        run: |
+          aws eks update-kubeconfig --region $AWS_REGION --name eks-demo-cluster
+
+      - name: Helm upgrade/install
+        run: |
+          helm upgrade --install "$RELEASE" ./web-chart --namespace "$NS" --create-namespace
+
+      - name: Validate web
+        env:
+          NS: ${{ env.NS }}
+          RELEASE: ${{ env.RELEASE }}
+          TIMEOUT: '300'
+        run: |
+          chmod +x scripts/validate-web.sh
+          ./scripts/validate-web.sh

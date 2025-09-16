@@ -1,0 +1,6 @@
+apiVersion: v2
+name: web-nginx
+version: 0.1.0
+appVersion: "1.0.0"
+description: "Ejemplo de app NGINX que muestra el nombre del pod"
+type: application
