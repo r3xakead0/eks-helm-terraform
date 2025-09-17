@@ -29,9 +29,9 @@ resource "helm_release" "cluster_autoscaler" {
         clusterName = module.eks.cluster_name
       },
       extraArgs = {
-        "balance-similar-node-groups"       = "true",
-        "skip-nodes-with-local-storage"     = "false",
-        "expander"                          = "least-waste"
+        "balance-similar-node-groups"   = "true",
+        "skip-nodes-with-local-storage" = "false",
+        "expander"                      = "least-waste"
       }
     })
   ]

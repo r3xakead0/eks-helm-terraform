@@ -9,28 +9,26 @@ Plantilla lista para VS Code (con `.vscode/`) y GitHub Actions. Infra separada d
 - kubectl, helm
 - jq
 
-## Crear backend remoto
+## Backend remoto (estado de Terraform)
 
-# Crear bucket (cambia si el nombre ya existe globalmente)
+Primera vez, crear bucket y tabla DynamoDB (para locks):
 
 ```bash
+# Crear bucket (cambia si el nombre ya existe globalmente)
+
 aws s3api create-bucket \
  --bucket eks-demo-4565-tf-state-files \
  --region us-east-1 \
  --create-bucket-configuration LocationConstraint=us-east-1
-```
 
 # Habilitar versioning (opcional pero recomendado)
 
-```bash
 aws s3api put-bucket-versioning \
  --bucket eks-demo-4565-tf-state-files \
  --versioning-configuration Status=Enabled
-```
 
 # Crear tabla DynamoDB para locks
 
-```bash
 aws dynamodb create-table \
  --table-name eks-demo-4565-tf-locks \
  --attribute-definitions AttributeName=LockID,AttributeType=S \
@@ -38,30 +36,43 @@ aws dynamodb create-table \
  --billing-mode PAY_PER_REQUEST
 ```
 
-## Uso local (rápido)
+**Alternativa:** ejecutar scripts/bootstrap-backend.sh que hace todo lo anterior automáticamente.
 
-# Infraestructura
+```bash
+chmod +x scripts/bootstrap-backend.sh
+./scripts/bootstrap-backend.sh
+```
+
+Después corre:
 
 ```bash
 cd terraform
-terraform init
+terraform init -reconfigure
+```
+
+## Uso local (rápido)
+
+### Infraestructura
+
+```bash
+cd terraform
 terraform plan -out=tfplan
 terraform apply -auto-approve tfplan
 ```
 
-# Kubeconfig
+### Kubeconfig
 
 ```bash
 aws eks update-kubeconfig --region us-east-1 --name eks-demo-cluster
 ```
 
-# Desplegar web por Helm
+### Desplegar web por Helm
 
 ```bash
 helm upgrade --install web-nginx ./web-chart --namespace default --create-namespace
 ```
 
-# Validar
+### Validar
 
 ```bash
 chmod +x scripts/validate-web.sh
@@ -73,7 +84,7 @@ NS=default RELEASE=web-nginx TIMEOUT=300 ./scripts/validate-web.sh
 - Extensiones recomendadas y tareas en `.vscode/` (Terraform fmt/plan/apply, Helm, validate).
 - Devcontainer opcional en `.devcontainer/`.
 
-## Workflows
+## Workflows (GitHub Actions)
 
-- `.github/workflows/infra.yml` – Terraform.
-- `.github/workflows/web.yml` – Helm + validación.
+- `.github/workflows/infra.yml` – Terraform (infraestructura).
+- `.github/workflows/web.yml` – Helm (despliegue app web + validación).

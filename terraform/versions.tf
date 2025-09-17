@@ -16,12 +16,12 @@ terraform {
     }
   }
 
-  #   backend "s3" {
-  #     bucket         = "eks-demo-4565-tf-state-files"
-  #     key            = "eks/dev/terraform.tfstate"
-  #     region         = "us-east-1"
-  #     dynamodb_table = "eks-demo-4565-tf-locks"
-  #     encrypt        = true
-  #   }
+  backend "s3" {
+    bucket         = "eks-demo-4565-tf-state-files"
+    key            = "eks/dev/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "eks-demo-4565-tf-locks"
+    encrypt        = true
+  }
 
 }
